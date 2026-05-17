@@ -2,6 +2,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
+from config import MAX_ITERS
+
 from google import genai
 from google.genai import types
 
@@ -28,6 +30,12 @@ def main():
             - Retrieve file content
             - Write file content
             - Run Python files
+
+            When the user asks about the code project - they are referring to
+            the working directory. So you should start by looking at the projects
+            files, and figuring out how to run the project and how. to run its tests,
+            you'll always want to test the tests and the actual project to verify 
+            that behaviour is working.
 
             All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
         """
@@ -60,25 +68,35 @@ def main():
         system_instruction=system_prompt,
     )
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=messages,
-        config=config,
-    )
-    if response is None or response.usage_metadata is None:
-        return
+    for i in range(0, MAX_ITERS):
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=messages,
+            config=config,
+        )
+        
+        if response is None or response.usage_metadata is None:
+            return
 
-    if verbose_flag:
-        print("User prompt:", prompt)
-        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-        print("Response tokens:", response.usage_metadata.candidates_token_count)
+        if verbose_flag:
+            print("User prompt:", prompt)
+            print("Prompt tokens:", response.usage_metadata.prompt_token_count)
+            print("Response tokens:", response.usage_metadata.candidates_token_count)
 
-    if response.function_calls:
-        for function_call_part in response.function_calls:
-            result = call_function(function_call_part, verbose=verbose_flag)
-            print(result)
-    else:
-        print(response.text)
+        if response.candidates:
+            for candidate in response.candidates:
+                if candidate is None or candidate.content is None:
+                    continue
+                messages.append(candidate.content)
+        
+        if response.function_calls:
+            for function_call_part in response.function_calls:
+                result = call_function(function_call_part, verbose=verbose_flag)
+                messages.append(result)
+
+        else:
+            print(response.text)
+            return
     
 
 main()
