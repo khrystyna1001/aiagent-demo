@@ -1,12 +1,15 @@
 from functions.get_files_info import get_files_info
 from functions.get_file_content import get_file_content
 from functions.write_file import write_file
+from functions.run_python_file import run_python_file
 
 def main():
     working_dir = "calculator"
-    print(write_file(working_dir, "morelorem.txt", "wait this isn't lorem ipsum"))
-    print(write_file(working_dir, "pkg/newfile.txt", "this is a new file in the pkg directory"))
-    print(write_file(working_dir, "/tmp/temp.txt", "this should not be allowed"))
+    print(run_python_file(working_dir, "main.py", ["3 + 5"]))
+
+    # print(write_file(working_dir, "morelorem.txt", "wait this isn't lorem ipsum"))
+    # print(write_file(working_dir, "pkg/newfile.txt", "this is a new file in the pkg directory"))
+    # print(write_file(working_dir, "/tmp/temp.txt", "this should not be allowed"))
 
     # print(get_file_content(working_dir, "main.py"))
     # print(get_file_content(working_dir, "pkg/calculator.py"))
